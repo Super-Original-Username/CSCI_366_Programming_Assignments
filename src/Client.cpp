@@ -22,10 +22,32 @@ Client::~Client() {
 
 
 void Client::initialize(unsigned int player, unsigned int board_size){
+    player = player;
+    string 
+    board_size = board_size;
+    int [board_size][board_size] trackingBoard; 
 }
 
 
 void Client::fire(unsigned int x, unsigned int y) {
+    int sendX = x - 1;
+    int sendY = y - 1;
+    bool newShot = false;
+    while(!newShot){
+    if (trackingBoard[sendY][sendX] == 1){
+        cout << "Looks like you've already fired there, try again\n";
+        cout << "Enter fire x position: ";
+        cin >> x;
+        cout << "Enter fire y position: ";
+        cin >> y;
+    }
+    else{
+        trackingBoard[sendY][sendX] = 1;
+        newShot = true;
+    }
+    }
+
+
 }
 
 
@@ -35,7 +57,6 @@ bool Client::result_available() {
 
 int Client::get_result() {
 }
-
 
 
 void Client::update_action_board(int result, unsigned int x, unsigned int y) {
