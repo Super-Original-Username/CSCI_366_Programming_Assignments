@@ -22,10 +22,10 @@ Client::~Client() {
 
 
 void Client::initialize(unsigned int player, unsigned int board_size){
-    player = player;
-    string 
-    board_size = board_size;
-    int [board_size][board_size] trackingBoard; 
+    Client::player = player;
+    Client::board_name = "player_" + player + ".result.json";
+    Client::board_size = board_size;
+    int [board_size][board_size] trackingBoard;
 }
 
 
@@ -46,7 +46,10 @@ void Client::fire(unsigned int x, unsigned int y) {
         newShot = true;
     }
     }
-
+    cereal::JSONOutputArchive archive( std::board_name );
+    bool arr[] = {true, false};
+    std::vector<int> vec = {1, 2, 3, 4, 5};
+    archive(trackingBoard);
 
 }
 
