@@ -33,13 +33,13 @@ void Client::initialize(unsigned int player, unsigned int board_size)
         Client::player = player;
         if (player > 2)
         {
-            throw new ClientWrongPlayerNumberException;
+            ClientWrongPlayerNumberException;
         }
         Client::board_size = board_size;
         board_name = "./outputs/player_" + to_string(player) + ".action_board.json";
         if (checkFileExistence(board_name))
         {
-            throw new ClientException("It looks like player " + to_string(player) + " already has a board.");
+            throw ClientException("It looks like player " + to_string(player) + " already has a board.");
             //cout << "That player already has a board. Delete and remake?\n (Y/n)";
             
         }
@@ -147,6 +147,7 @@ int Client::get_result()
     cereal::JSONInputArchive inputArchive(inf);
     inputArchive(res);
     inf.close();
+    remove(thisResult.c_str());
     return res;
 }
 
