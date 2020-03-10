@@ -16,6 +16,7 @@
 
 #include "common.hpp"
 #include "Client.hpp"
+#include <sys/stat.h> // this is for checking the existence of files. As far as I understand, this __only__ works on posix compliant systems
 
 bool checkFileExistence(string s);
 
@@ -29,16 +30,18 @@ void Client::initialize(unsigned int player, unsigned int board_size)
     //while(!newPlayer){
     try
     {
-        player = player;
-        if(player > 2){
+        Client::player = player;
+        if (player > 2)
+        {
             throw new ClientWrongPlayerNumberException;
         }
-        board_size = board_size;
-        board_name = "./boardStates/player_" + to_string(player) + ".result.json";
+        Client::board_size = board_size;
+        board_name = "./outputs/player_" + to_string(player) + ".action_board.json";
         if (checkFileExistence(board_name))
         {
-            //throw new ClientException("It looks like player " + to_string(player) + " already has a board.");
-            cout << "that player already has a board\n";
+            throw new ClientException("It looks like player " + to_string(player) + " already has a board.");
+            //cout << "That player already has a board. Delete and remake?\n (Y/n)";
+            
         }
         else
         {
@@ -55,9 +58,13 @@ void Client::initialize(unsigned int player, unsigned int board_size)
             f.flush();
             //f.close();
         }
-    }catch (ClientException& e) {
+    }
+    catch (ClientException &e)
+    {
         cout << e.what() << '\n';
-    }catch (ClientWrongPlayerNumberException& e){
+    }
+    catch (ClientWrongPlayerNumberException &e)
+    {
         cout << e.what() << '\n';
     }
     //cout << "init done\n";
@@ -65,35 +72,46 @@ void Client::initialize(unsigned int player, unsigned int board_size)
 
 bool checkFileExistence(string s)
 {
-    ifstream f(s);
+    //solution from https://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
+    // supposedly a very fast way to verify the existence of a file on posix compliant systems
+    struct stat buffer;
+    return (stat(s.c_str(), &buffer) == 0);
+    /* ifstream f(s);
     //return f.good();
-    return false;
+    return false;*/
 }
 
 void Client::fire(unsigned int x, unsigned int y)
 {
-    cout<<"fire called\n";
-   //std::ofstream outf;
-   //outf.open(board_name);
-   //cout<<"ofstram made\n";
-   std::ifstream inf(board_name);
-   cout<<"ifstram\n";
+    string shot = "./outputs/player_" + to_string(player) + ".shot.json";
+    cout << "fire called\n";
+    std::ifstream inf(board_name);
+    //cout<<"ifstram\n";
     std::vector<std::vector<int>> trackedBoard(
-            board_size,
-            std::vector<int>(board_size));
-    cout << "vector made";
-    //cereal::JSONOutputArchive outputArchive(outf);
-
+        board_size,
+        std::vector<int>(board_size));
     cereal::JSONInputArchive inputArchive(inf);
     inputArchive(trackedBoard);
-    cout<<"read archive\n";
+    inf.close();
+    //cout << trackedBoard.size();
+    for (int i = 0; i < trackedBoard.size(); i++)
+    {
+        for (int j = 0; j < trackedBoard[i].size(); j++)
+        {
+            cout << trackedBoard[i][j];
+        }
+        cout << '\n';
+    }
+    //cout << "read archive\n";
     int sendX = x - 1;
     int sendY = y - 1;
-    bool newShot = false;
-    do{
-        cout<<"in the loop\n";
-        if (trackedBoard[sendY][sendX] == 1)
+    /*     bool newShot = false;
+    do
+    {
+        cout << "in the loop\n";
+        if (trackedBoard[sendY][sendX] == 1 || trackedBoard[sendY][sendX] == -1)
         {
+            cout << "Hit the conditional\n\n";
             cout << "Looks like you've already fired there, try again\n";
             cout << "Enter fire x position: ";
             cin >> x;
@@ -102,23 +120,34 @@ void Client::fire(unsigned int x, unsigned int y)
         }
         else
         {
-            trackedBoard[sendY][sendX] = 1;
+            //trackedBoard[sendY][sendX] = 1;
             newShot = true;
         }
-    }while (!newShot);
+    } while (!newShot); */
+
+    //std::ofstream outf(board_name,std::ios_base::app);
+    std::ofstream outf(shot);
+    cereal::JSONOutputArchive outArch(outf);
+    outArch(sendX, sendY);
+    outf.close();
     //outputArchive(trackedBoard);
 }
 
 bool Client::result_available()
 {
-    cout<<"teehee you dumb";
-    return false;
+    string thisResult = "./outputs/player_" + to_string(player) + ".result.json";
+    return checkFileExistence(thisResult);
 }
 
 int Client::get_result()
 {
-    cout<< "teehee you dumb";
-    return 0;
+    int res;
+    string thisResult = "./outputs/player_" + to_string(player) + ".result.json";
+    std::ifstream inf(thisResult);
+    cereal::JSONInputArchive inputArchive(inf);
+    inputArchive(res);
+    inf.close();
+    return res;
 }
 
 void Client::update_action_board(int result, unsigned int x, unsigned int y)
@@ -127,5 +156,24 @@ void Client::update_action_board(int result, unsigned int x, unsigned int y)
 
 string Client::render_action_board()
 {
-    return "teehee you dumb";
+    string toReturn = "";
+
+    std::ifstream inf(board_name);
+    //cout<<"ifstram\n";
+    std::vector<std::vector<int>> trackedBoard(
+        board_size,
+        std::vector<int>(board_size));
+    cereal::JSONInputArchive inputArchive(inf);
+    inputArchive(trackedBoard);
+    inf.close();
+
+    for (int i = 0; i < trackedBoard.size(); i++)
+    {
+        for (int j = 0; j < trackedBoard[i].size(); j++)
+        {
+            toReturn += trackedBoard[i][j];
+        }
+        toReturn += '\n';
+    }
+    return toReturn;
 }

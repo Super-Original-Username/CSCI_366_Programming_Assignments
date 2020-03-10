@@ -32,6 +32,10 @@ int get_file_length(ifstream *file){
 void Server::initialize(unsigned int board_size,
                         string p1_setup_board,
                         string p2_setup_board){
+                           Server::board_size = board_size;
+                           Server::p1_setup_board.open(p1_setup_board);
+                           Server::p2_setup_board.open(p2_setup_board);
+
 }
 
 
