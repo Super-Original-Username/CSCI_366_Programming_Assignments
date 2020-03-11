@@ -28,12 +28,17 @@ int get_file_length(ifstream *file)
 {
 }
 
+bool boardSizeVerifier(ifstream f, int expectedSize);
+
+bool checkFileExistenceS(string s);
+
+
 void Server::initialize(unsigned int board_size,
                         string p1_setup_board,
                         string p2_setup_board)
 {
    Server::board_size = board_size;
-   if (checkFileExistence(p1_setup_board) && checkFileExistence(p2_setup_board))
+   if (checkFileExistenceS(p1_setup_board) && checkFileExistenceS(p2_setup_board))
    {
 
       Server::p1_setup_board = ifstream(p1_setup_board);
@@ -55,7 +60,7 @@ void Server::initialize(unsigned int board_size,
    }
 }
 
-bool checkFileExistence(string s)
+bool checkFileExistenceS(string s)
 {
    //solution from https://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
    // supposedly a very fast way to verify the existence of a file on posix compliant systems
@@ -103,18 +108,22 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y)
       return OUT_OF_BOUNDS;
    }
    string thisResult = "./outputs/player_" + to_string(player) + ".result.json";
-   string boardName = "./outputs/player_" + to_string(player) + ".setup_board.txt"; // this assumes that the input string is ALWAYS called  "player_#.setup_board.txt"
+   // the following assumes that the input string is ALWAYS called  "player_#.setup_board.txt"
+   // I have yet to find a way to make use of the ifstream class members outside of the initialize function.
+   // as far as I can tell, these should have been defined as strings. I would make the change on my own, since I don't
+   // make use of the ifstreams, though I'm concerned that there may be some conflict with the tests
+   string boardName = "./outputs/player_" + to_string(player) + ".setup_board.txt"; 
    vector<vector<string>> board(board_size, vector<string>(board_size));
    string line;
    int row = 0;
    while(getline(Server::p1_setup_board,line)){
-      for(int col = 0; col < line.length; col++){
+      for(int col = 0; col < line.length(); col++){
          board[row][col] = line[col];
       }
       ++row;
    }
 
-   
+
 
 
 }
@@ -123,7 +132,7 @@ int Server::process_shot(unsigned int player)
 {
    int x, y;
    string shot = "./outputs/player_" + to_string(player) + ".shot.json";
-   if (!checkFileExistence(shot))
+   if (!checkFileExistenceS(shot))
    {
       return NO_SHOT_FILE;
    }
