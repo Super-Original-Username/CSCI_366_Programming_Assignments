@@ -32,7 +32,7 @@ void Server::initialize(unsigned int board_size,
                         string p1_setup_board,
                         string p2_setup_board)
 {
-   Server::board_size = board_size;
+   Server::board_size = board_size; 
    if (checkFileExistence(p1_setup_board) && checkFileExistence(p2_setup_board))
    {
 
@@ -106,7 +106,11 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y)
       return OUT_OF_BOUNDS;
    }
    string thisResult = "./outputs/player_" + to_string(player) + ".result.json";
-   string boardName = "./outputs/player_" + to_string(player) + ".setup_board.txt"; // this assumes that the input string is ALWAYS called  "player_#.setup_board.txt"
+   // the following assumes that the input string is ALWAYS called  "player_#.setup_board.txt"
+   // I have yet to find a way to make use of the ifstream class members outside of the initialize function.
+   // as far as I can tell, these should have been defined as strings. I would make the change on my own, since I don't
+   // make use of the ifstreams, though I'm concerned that there may be some conflict with the tests
+   string boardName = "./outputs/player_" + to_string(player) + ".setup_board.txt"; 
    vector<vector<string>> board(board_size, vector<string>(board_size));
    string line;
    int row = 0;
