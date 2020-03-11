@@ -61,9 +61,6 @@ bool checkFileExistence(string s)
    // supposedly a very fast way to verify the existence of a file on posix compliant systems
    struct stat buffer;
    return (stat(s.c_str(), &buffer) == 0);
-   /* ifstream f(s);
-    //return f.good();
-    return false;*/
 }
 
 bool boardSizeVerifier(ifstream f, int expectedSize)
