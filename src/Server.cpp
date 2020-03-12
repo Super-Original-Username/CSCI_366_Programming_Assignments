@@ -24,32 +24,33 @@
  * @param file - the file whose length we want to query
  * @return length of the file in bytes
  */
-int get_file_length(ifstream *file)
+/* int get_file_length(ifstream *file)
 {
-}
+} */
 
 bool boardSizeVerifier(ifstream f, int expectedSize);
 
 bool checkFileExistenceS(string s);
 
-
 void Server::initialize(unsigned int board_size,
                         string p1_setup_board,
                         string p2_setup_board)
 {
+   string new_p1b = "../" + p1_setup_board;
+   string new_p2b = "../" + p2_setup_board;
    Server::board_size = board_size;
-   if (checkFileExistenceS(p1_setup_board) && checkFileExistenceS(p2_setup_board))
+   if (checkFileExistenceS(new_p1b) && checkFileExistenceS(new_p2b))
    {
-
-      Server::p1_setup_board = ifstream(p1_setup_board);
-      Server::p2_setup_board = ifstream(p2_setup_board);
+      //cout << "both boards exist";
+      Server::p1_setup_board = ifstream(new_p1b);
+      Server::p2_setup_board = ifstream(new_p2b);
       Server::p1_setup_board.close();
       Server::p2_setup_board.close();
 
       vector<vector<string>> p1b(board_size, vector<string>(board_size));
       vector<vector<string>> p2b(board_size, vector<string>(board_size));
 
-      if (!boardSizeVerifier(ifstream(p1_setup_board), board_size) || !boardSizeVerifier(ifstream(p2_setup_board), board_size))
+      if (!boardSizeVerifier(ifstream(new_p1b), board_size) || !boardSizeVerifier(ifstream(new_p2b), board_size))
       {
          throw ServerException("one of these boards is the wrong size");
       }
@@ -87,51 +88,89 @@ bool boardSizeVerifier(ifstream f, int expectedSize)
          return true;
       }
    }
-   else
-      return false;
+
+   return false;
 }
 
-
-bool shipTypeExists(char c){
-   string ships = SHIPS;
-   size_t ind = ships.find(c);
-   if(ind < ships.length()){
-      return true;
-   }else{
-      return false;
-   }
+bool shipTypeExists(const string & shipList, char c)
+{
+   cout<<shipList<<"\n";
+   cout<<c<<"\n";
+   bool res = (shipList.find(c) != std::string::npos);
+   cout<<res<<"\n";
+   return res;
 }
 
 int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y)
 {
-   if(x>=BOARD_SIZE || x < 0 || y >= BOARD_SIZE || y < 0){
+   // checks that the player number is valid
+   if (player < 1)
+   {
+      throw ServerException("You attempted to enter a player number less than 1");
+   }
+   else if (player > MAX_PLAYERS)
+   {
+      string ex = "You attempted to enter a player number greater than " + MAX_PLAYERS;
+      throw ServerException(ex);
+   }
+
+   //checks that the coordinates are valid
+   if (x >= BOARD_SIZE || x < 0 || y >= BOARD_SIZE || y < 0)
+   {
       return OUT_OF_BOUNDS;
    }
-   string thisResult = "./outputs/player_" + to_string(player) + ".result.json";
    // the following assumes that the input string is ALWAYS called  "player_#.setup_board.txt"
    // I have yet to find a way to make use of the ifstream class members outside of the initialize function.
    // as far as I can tell, these should have been defined as strings. I would make the change on my own, since I don't
    // make use of the ifstreams, though I'm concerned that there may be some conflict with the tests
-   string boardName = "./outputs/player_" + to_string(player) + ".setup_board.txt"; 
-   vector<vector<string>> board(board_size, vector<string>(board_size));
+   string boardName = "../player_" + to_string(player) + ".setup_board.txt";
+   ifstream txtBoard(boardName);
+   vector<vector<char>> board(board_size, vector<char>(board_size));
    string line;
-   int row = 0;
-   while(getline(Server::p1_setup_board,line)){
-      for(int col = 0; col < line.length(); col++){
+
+   int row = 0; 
+   //builds the board from file
+   while (getline(txtBoard, line))
+   {
+      for (int col = 0; col < line.length(); col++)
+      {
          board[row][col] = line[col];
+         //cout<<line[col];
       }
       ++row;
+      //cout<<"\n";
    }
 
+   char coord = board[y][x];// this was for debugging. probably unnecessary now
 
+   if (shipTypeExists(SHIPS,coord))
+   {
+      return HIT;
+   }/* 
+   else if (board[y][x] == '_')
+   {
+      return MISS;
+   } */
 
-
+   return MISS;
 }
 
 int Server::process_shot(unsigned int player)
 {
+
+   //same block as used in evaluate_shot, because I am lazy and it works
+   if (player < 1)
+   {
+      throw ServerException("You attempted to enter a player number less than 1");
+   }
+   else if (player > MAX_PLAYERS)
+   {
+      string ex = "You attempted to enter a player number greater than " + MAX_PLAYERS;
+      throw ServerException(ex);
+   }
+
    int x, y;
-   string shot = "./outputs/player_" + to_string(player) + ".shot.json";
+   string shot = "player_" + to_string(player) + ".shot.json";
    if (!checkFileExistenceS(shot))
    {
       return NO_SHOT_FILE;
@@ -140,9 +179,23 @@ int Server::process_shot(unsigned int player)
    {
       ifstream f(shot);
       cereal::JSONInputArchive inputArchive(f);
-      inputArchive(x,y);
+      inputArchive(y, x);
+
       f.close();
+
       remove(shot.c_str());
-      return evaluate_shot(player,x,y);
+
+      string thisResult = "player_" + to_string(player) + ".result.json";
+      ofstream res(thisResult);
+      cereal::JSONOutputArchive outArch(res);
+      int result = evaluate_shot(player, x, y);
+      //cout << "\n\n\t" + to_string(result) + "\n\n";
+      outArch(cereal::make_nvp("result", result));
+      res.flush();
+      
+      
+
+      return result;
    }
+   return NO_SHOT_FILE;
 }
