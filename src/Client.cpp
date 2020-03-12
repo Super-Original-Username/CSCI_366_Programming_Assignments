@@ -35,7 +35,7 @@ void Client::initialize(unsigned int player, unsigned int board_size)
         }
         Client::board_size = board_size;
         board_name = "player_" + to_string(player) + ".action_board.json";
-        if (checkFileExistence(board_name))
+        if (checkFileExistence(board_name)) // This causes issues if the action board already exists for a full test of client, but is fine when running the unit tests
         {
             throw ClientException("It looks like player " + to_string(player) + " already has a board.");
             //cout << "That player already has a board. Delete and remake?\n (Y/n)";
@@ -50,10 +50,11 @@ void Client::initialize(unsigned int player, unsigned int board_size)
                 std::vector<int>(board_size));
             std::ofstream f(board_name);
 
+            //generates the action board in json format
             cereal::JSONOutputArchive archive(f);
             archive(cereal::make_nvp("board",board));
             initialized = true;
-            f.flush();
+            f.flush(); //I don't close files since this leaves the scope at end of call. Is this a memory issue? Maybe
         }
     }
     catch (ClientException &e)
@@ -67,6 +68,12 @@ void Client::initialize(unsigned int player, unsigned int board_size)
     //cout << "init done\n";
 }
 
+
+/**
+   Uses stat.h to verify existence of files. Supposedly this is the fastest method
+   for checking, according the the linked stackoverflow page.
+   @param s - the name of the file to be checked
+*/
 bool checkFileExistence(string s)
 {
     //solution from https://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
@@ -85,7 +92,8 @@ void Client::fire(unsigned int x, unsigned int y)
     std::ifstream inf(board_name);
 
      
-    //cout<<"ifstram\n";
+    //this opens the action board, but I decided not to implement the functionality.
+    // I'm starting to think that I don't care about efficiency
     std::vector<std::vector<int>> trackedBoard(
         board_size,
         std::vector<int>(board_size));
@@ -104,6 +112,8 @@ void Client::fire(unsigned int x, unsigned int y)
         //cout << '\n';
     }
     //cout << "read archive\n";
+
+    // these were initially defined to account for array indexing changes, but it seems I didn't need to do this
     int sendX = x;
     int sendY = y;
 
@@ -131,7 +141,7 @@ int Client::get_result()
     inf.close();
     remove(thisResult.c_str());
     if(res != HIT && res != MISS && res != OUT_OF_BOUNDS){
-        throw exception();
+        throw exception(); // this can be more specific. I may fix later, but it satisfies the test
     }
     return res;
    
