@@ -18,16 +18,6 @@
 #include "Server.hpp"
 #include <sys/stat.h>
 
-/**
- * Calculate the length of a file (helper function)
- *
- * @param file - the file whose length we want to query
- * @return length of the file in bytes
- */
-/* int get_file_length(ifstream *file)
-{
-} */
-
 bool boardSizeVerifier(ifstream f, int expectedSize);
 
 bool checkFileExistenceS(string s);
@@ -146,11 +136,7 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y)
    if (shipTypeExists(SHIPS,coord))
    {
       return HIT;
-   }/* 
-   else if (board[y][x] == '_')
-   {
-      return MISS;
-   } */
+   }
 
    return MISS;
 }
@@ -179,7 +165,7 @@ int Server::process_shot(unsigned int player)
    {
       ifstream f(shot);
       cereal::JSONInputArchive inputArchive(f);
-      inputArchive(y, x);
+      inputArchive(x, y);
 
       f.close();
 
@@ -189,7 +175,6 @@ int Server::process_shot(unsigned int player)
       ofstream res(thisResult);
       cereal::JSONOutputArchive outArch(res);
       int result = evaluate_shot(player, x, y);
-      //cout << "\n\n\t" + to_string(result) + "\n\n";
       outArch(cereal::make_nvp("result", result));
       res.flush();
       

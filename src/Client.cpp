@@ -26,8 +26,6 @@ Client::~Client()
 
 void Client::initialize(unsigned int player, unsigned int board_size)
 {
-    //bool newPlayer = false;
-    //while(!newPlayer){
     try
     {
         Client::player = player;
@@ -56,8 +54,6 @@ void Client::initialize(unsigned int player, unsigned int board_size)
             archive(cereal::make_nvp("board",board));
             initialized = true;
             f.flush();
-            //f.close();
-            //f.close();
         }
     }
     catch (ClientException &e)
@@ -110,27 +106,7 @@ void Client::fire(unsigned int x, unsigned int y)
     //cout << "read archive\n";
     int sendX = x;
     int sendY = y;
-    /*     bool newShot = false;
-    do
-    {
-        cout << "in the loop\n";
-        if (trackedBoard[sendY][sendX] == 1 || trackedBoard[sendY][sendX] == -1)
-        {
-            cout << "Hit the conditional\n\n";
-            cout << "Looks like you've already fired there, try again\n";
-            cout << "Enter fire x position: ";
-            cin >> x;
-            cout << "Enter fire y position: ";
-            cin >> y;
-        }
-        else
-        {
-            //trackedBoard[sendY][sendX] = 1;
-            newShot = true;
-        }
-    } while (!newShot); */
 
-    //std::ofstream outf(board_name,std::ios_base::app);
     std::ofstream outf(shot);
     cereal::JSONOutputArchive outArch(outf);
     outArch(cereal::make_nvp("x",sendX),cereal::make_nvp("y",sendY));
@@ -179,7 +155,7 @@ void Client::update_action_board(int result, unsigned int x, unsigned int y)
     inputArchive(trackedBoard);
     inf.close();
 
-    trackedBoard[inX][inY] = result;
+    trackedBoard[inY][inX] = result;
     //cout << trackedBoard[inX][inY];
 
     std::ofstream outf(board_name);
