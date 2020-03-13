@@ -127,6 +127,16 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y)
       throw ServerException(ex);
    }
 
+   int oppositePlayer;
+   /** This check is done so we can open the correct board. Some of the tests (and the game, I guess)
+    *  will break, otherwise
+   */
+   if(player==1){
+      oppositePlayer=2;
+   }else if (player==2){
+      oppositePlayer=1;
+   }
+
    //checks that the coordinates are valid
    if (x >= BOARD_SIZE || x < 0 || y >= BOARD_SIZE || y < 0)
    {
@@ -136,7 +146,7 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y)
    // I have yet to find a way to make use of the ifstream class members outside of the initialize function.
    // as far as I can tell, these should have been defined as strings. I would make the change on my own, since I don't
    // make use of the ifstreams, though I'm concerned that there may be some conflict with the tests
-   string boardName = "../player_" + to_string(player) + ".setup_board.txt";
+   string boardName = "../player_" + to_string(oppositePlayer) + ".setup_board.txt";
    ifstream txtBoard(boardName);
    vector<vector<char>> board(board_size, vector<char>(board_size));
    string line;
@@ -148,10 +158,10 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y)
       for (int col = 0; col < line.length(); col++)
       {
          board[row][col] = line[col];
-         //cout<<line[col];
+         cout<<line[col];
       }
       ++row;
-      //cout<<"\n";
+      cout<<"\n";
    }
 
    char coord = board[y][x];// this was for debugging. probably unnecessary now
