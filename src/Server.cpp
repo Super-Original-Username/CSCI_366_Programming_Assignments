@@ -18,9 +18,14 @@
 #include "Server.hpp"
 #include <sys/stat.h>
 
+
+/* Extra prototypes. Full definitions below*/
 bool boardSizeVerifier(ifstream f, int expectedSize);
 
 bool checkFileExistenceS(string s);
+
+
+
 
 void Server::initialize(unsigned int board_size,
                         string p1_setup_board,
@@ -51,6 +56,14 @@ void Server::initialize(unsigned int board_size,
    }
 }
 
+
+/**
+   I didn't want to change the contents of common, so I just added an s to the name of this.
+   It is otherwise identical to the similarly named function in client.
+   Uses stat.h to verify existence of files. Supposedly this is the fastest method
+   for checking, according the the linked stackoverflow page.
+   @param s - the name of the file to be checked
+*/
 bool checkFileExistenceS(string s)
 {
    //solution from https://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
@@ -59,6 +72,12 @@ bool checkFileExistenceS(string s)
    return (stat(s.c_str(), &buffer) == 0);
 }
 
+
+/**
+   Checks if the board file has the correct dimensions
+   @param f - the ifstream for the file to be checked
+   @param expectedSize - the size of the board
+*/
 bool boardSizeVerifier(ifstream f, int expectedSize)
 {
    int numCols = 0;
@@ -82,6 +101,10 @@ bool boardSizeVerifier(ifstream f, int expectedSize)
    return false;
 }
 
+/**
+ * @param shipList - ensures that SHIPS is a string. Probably unnecessary
+ * @param c - the character to check
+*/
 bool shipTypeExists(const string & shipList, char c)
 {
    cout<<shipList<<"\n";
