@@ -38,7 +38,36 @@ void Client::initialize(unsigned int player, unsigned int board_size)
         if (checkFileExistence(board_name)) // This causes issues if the action board already exists for a full test of client, but is fine when running the unit tests
         {
             throw ClientException("It looks like player " + to_string(player) + " already has a board.");
-            //cout << "That player already has a board. Delete and remake?\n (Y/n)";
+            
+            /**
+             * Uncomment the below snippet (surrounded by dashes) if you want some degree of checking 
+             * if a board already exists. I was close-ish on the functionality for one of the bonus 
+             * points, but decided against it in the end. Uncommenting it _WILL_ make testing a bit 
+             * irritating, as it has a prompt for user input whenever an action board already exists.
+            */
+            
+            
+            /* 
+            --------------------------------------------------------------------------------------------
+            cout << "That player already has a board. Delete current board?\n (Y/n)";
+            char input;
+            cin >> input;
+            tolower(input);
+        
+            switch (input)
+            {
+            case 'y':
+                cout << "Board deleted. Please enter your player number again, as prompted below.\n";
+                remove(board_name.c_str());
+                break;
+            case 'n':
+                throw ClientException("Board already taken");
+                break;
+            default:
+                break;
+            } 
+            ----------------------------------------------------------------------------------------------
+            */
             
         }
         else
@@ -180,7 +209,7 @@ void Client::update_action_board(int result, unsigned int x, unsigned int y)
 string Client::render_action_board()
 {
     string toReturn = "";
-
+    char forBoard;
     std::ifstream inf(board_name);
     //cout<<"ifstram\n";
     std::vector<std::vector<int>> trackedBoard(
@@ -194,7 +223,14 @@ string Client::render_action_board()
     {
         for (int j = 0; j < trackedBoard[i].size(); j++)
         {
-            toReturn += trackedBoard[i][j];
+            if(trackedBoard[i][j] == 0){
+                forBoard = '_';                      //empty
+            }else if (trackedBoard[i][j] == 1){
+                forBoard = 'o';                      //hit
+            }else if (trackedBoard[i][j] == 0){
+                forBoard = 'x';                      //miss
+            }
+            toReturn += forBoard;
         }
         toReturn += '\n';
     }
